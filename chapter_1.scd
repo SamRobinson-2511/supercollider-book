@@ -250,26 +250,176 @@ p.free;
 
 (
 {
-	var rate = 4, carrier, modRatio;
-	carrier = LFNoise0.kr(rate)*500+700;
+	var rate = Line.kr(1,20,5), carrier, modRatio, index = Line.kr(1, 12, 2);//4
+	carrier = LFNoise0.kr([rate, rate - 2.77])*500+700;//1
 	modRatio = MouseX.kr(1,2.0);
-	PMOsc.ar(carrier, carrier*modRatio, 12)*0.3
+	PMOsc.ar(carrier, carrier*modRatio, index)*0.3 //2
+}.play;
+)
+
+
+//1.9: Synth Definitions
+{SinOsc.ar}.play;//generates a temp_number synth
+SynthDef("sine", {Out.ar(0, SinOsc.ar)}).play; //names the SynthDef and output explicitly
+
+SynthDef("sine", {Out.ar(1,SinOsc.ar)}).play; //right channel
+
+(
+SynthDef(\one_tone_only, {
+	var out, freq = 440;
+	out = SinOsc.ar(freq);
+	Out.ar(0, out);
+}).add; //make sure SuperCollider knows about this SynthDef
+)
+
+//then use it to create a running Synth
+Synth(\one_tone_only);
+
+//Figure 1.7: Synth definition
+
+
+(
+SynthDef(\PMCrotale, {
+	|midi=60, tone=3, art=1, amp=0.8, pan=0|
+	var env, out, mod, freq;
+
+	freq = midi.midicps;
+	env = Env.perc(0, art);
+	mod = 5 + (1/IRand(2,6));
+
+	out = PMOsc.ar(freq, mod*freq,
+		pmindex: EnvGen.kr(env, timeScale:art, levelScale:tone),
+		mul: EnvGen.kr(env, timeScale: art, levelScale: 0.3));
+
+	out = Pan2.ar(out, pan);
+
+	out = out * EnvGen.kr(env, timeScale: 1.3*art,
+		levelScale: Rand(0.1, 0.5), doneAction:2);
+	Out.ar(0, out);
+}).add;
+)
+
+Synth(\PMCrotale, [\midi, rrand(48, 72).round(1), \tone, rrand(1, 6)])
+
+//1.10 Buses, Buffers, and Nodes
+
+//buses: for routing audio or control signals
+// -128 audio buses
+// -4096 control buses
+
+//SoundIn: for live input
+
+//~: environment variables
+// -work anywhere in patch
+// -work in other patches
+// -work in other windows
+s.boot;
+~houston = Buffer.read(s, "/Volumes/Samsung 870 QVO/SAMPLES/musicradar-balearic-bliss-samples/Kit 03 125bpm/Arp loops/BBk3Arp125A-05.wav");
+~chooston = Buffer.read(s, "/Volumes/Samsung 870 QVO/SAMPLES/musicradar-balearic-bliss-samples/Kit 03 125bpm/Arp loops/BBk3Arp125A-02.wav");
+
+{PlayBuf.ar(1, ~houston)}.play;
+{PlayBuf.ar(1, ~chooston)}.play;
+
+/*
+Once we've loaded a buffer we can retrieve information such as how many frames
+ti has, and therefore how long ti si (see figure 1.8). PlayBuf can be looped using its
+loopargument 1( = loop, 0= don't loop), but here atrigger is used to reset the play-
+back, looping only a section of the file (see also Trains). The trigger for the right
+channel isslightly later than the left one (by 0.01), allowing the loops to slowly shift
+and "come out" of phase. The position of the loop is also gradually increased with
+the Line. kr. The envelope is used to chop off the first and last hundredths of a sec- ond for a cleaner transition.
+*/
+
+//Figure 1.8: Playback buffers
+
+[~houston.bufnum, ~houston.numChannels, ~houston.path, ~houston.numFrames];
+[~chooston.bufnum, ~chooston.numChannels, ~chooston.path, ~chooston.numFrames];
+
+( //phasing
+{
+	var rate, trigger, frames;
+	frames = ~houston.numFrames;
+
+	rate = [1, 1.01];
+	trigger = Impulse.kr(rate);
+	PlayBuf.ar(1, ~houston, 1, trigger, frames * Line.kr(0, 1, 60)) *
+	EnvGen.kr(Env.linen(0.01, 0.96, 0.01), trigger) * rate;
+
+}.play;
+)
+
+
+( //phasing
+{
+	var rate, trigger, frames;
+	frames = ~chooston.numFrames;
+
+	rate = [1, 1.01];
+	trigger = Impulse.kr(rate);
+	PlayBuf.ar(1, ~chooston, 1, trigger, frames * Line.kr(0, 1, 60)) *
+	EnvGen.kr(Env.linen(0.01, 0.96, 0.01), trigger) * rate;
+
 }.play;
 )
 
 
 
+//speed and direction change
+
+(
+{
+	var speed, direction;
+	speed = LFNoise0.kr(12)*0.2+1;
+	direction = LFClipNoise.kr(1/3);
+	PlayBuf.ar(1, ~houston, (speed*direction), loop:1);
+}.play;
+)
+
+(
+{
+	var speed, direction;
+	speed = LFNoise0.kr(12)*0.2+1;
+	direction = LFClipNoise.kr(1/3);
+	PlayBuf.ar(1, ~chooston, (speed*direction), loop:1);
+}.play;
+)
 
 
+//Out.kr and In.kr for control buses
+/*So to connect an output to an input, you would use the
+same bus number: Out. kr(1950, 2 SomeControl.kr), then SinOsc.ar (In. kr (1950, 2)).*/
 
 
+//Figure 1.9: Connecting controls with a bus
 
 
+(
+// if these haven't been used, they will hold 0
+~kbus1 = Bus.control; //a control bus
+~kbus2 = Bus.control; //a control bus
 
+{
+	var speed, direction;
+	speed = In.kr(~kbus1, 1) * 0.2 + 1;
+	direction = In.kr(~kbus2);
+	PlayBuf.ar(1, ~chooston, (speed * direction), loop: 1);
+}.play;
+)
 
+(
+{Out.kr(~kbus1, LFNoise0.kr(12))}.play;
+{Out.kr(~kbus2, LFClipNoise.kr(1/4))}.play;
+)
 
+(
+{
+	var speed, direction;
+	speed = In.kr(~kbus1, 1) * 0.2 +1;
+	direction = In.kr(~kbus2);
+	Out.ar(1, PlayBuf.ar(1, ~houston, (speed*direction), loop:1));
 
-
+}.play;
+)
 
 
 
