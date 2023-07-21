@@ -178,10 +178,84 @@ dup({rand(1000.0)}, 5) //duplicates the function of picking a random number
 )
 
 
+//1.5: Variables
+
+(
+a = 440;
+b = 3;
+c = "math operations";
+[c,a,b,a*b,a+b,a.pow(b), a.mod(b)]
+)
+
+(
+{
+	r = MouseX.kr(1/3,10);
+	SinOsc.ar(mul: Linen.kr(Impulse.kr(r), 0, 1, 1/r))
+}.play;
+)
 
 
+//Figure 1.5: Synthesis example with variables and statements
+(
+//run this line first
+p = {
+	r = Line.kr(1,20,60); //rate
+	/*r = LFTri.kr(1/10) * 3 + 7;*/
+	t = Impulse.kr(r);
+	e = Linen.kr(r);
+	f = TRand.kr(1,10,t);
+	Blip.ar(f*100,f,e)
+}.play;
+)
 
+p.free;
 
+//variable names must begin with lowercase letters a-z and be contiguous
+
+//Figure 1.6: Phase modulation with modulator as ratio
+(
+{
+	r = Impulse.kr(10);
+	c = TRand.kr(100, 5000, r);
+	m = TRand.kr(100, 5000, r);
+	PMOsc.ar(c, m, 12)*0.3
+}.play;
+)
+
+(
+{
+	var rate = 4, carrier, modRatio;
+	carrier = LFNoise0.kr(rate)*500+700;
+	modRatio = MouseX.kr(1,2.0);
+	PMOsc.ar(carrier, carrier*modRatio, 12)*0.3
+}.play;
+)
+
+//1. make it stereo
+//2. Add a Line.kr to move the index (now 12) from 1 to 12
+//3. Identify the arguments for each receiver.message pair
+//4. Control the rate, using another Line with a range of 1 to 20
+//5. Add keywords to all argument lists
+//6. Add a new variable called env and assign it to Linen (an envelope with an attack of 1/rate and a decay of 0 to control the mul of the PMOsc (use keyword assignment)
+//7. Figure out what the * 500 + 700 are doing. Just 1 hint: the LFNoise0 is a bipolar UGen, meaning that it generates values between -1 and 1
+
+(
+{
+	r = Impulse.kr([10,10.5]); //1. make it stereo
+	c = TRand.kr(100, 5000, r);
+	m = TRand.kr(100, 5000, r);
+	PMOsc.ar(c, m, 12)*0.3
+}.play;
+)
+
+(
+{
+	var rate = 4, carrier, modRatio;
+	carrier = LFNoise0.kr(rate)*500+700;
+	modRatio = MouseX.kr(1,2.0);
+	PMOsc.ar(carrier, carrier*modRatio, 12)*0.3
+}.play;
+)
 
 
 
