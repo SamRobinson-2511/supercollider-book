@@ -130,6 +130,79 @@ dup({rand(1000.0)}, 5) //duplicates the function of picking a random number
 //1.6: Multichannel expansion
 
 {Blip.ar(25, LFNoise0.kr(5, 12, 14), 0.3)}.play; //single channel
+{Blip.ar(25, LFNoise0.kr([5,10], 12, 14), 0.3)}.play; //stereo
+{Blip.ar(25, LFNoise0.kr([5,10,2,25], 12, 14), 0.3)}.play; //quad
+{Blip.ar(25, LFNoise0.kr([5,4,7,9,5,1,9,2], 12, 14), 0.3)}.play; //8 chan
+
+//1.7: Help!
+{PMOsc.ar(440,550,7)}.play; //like an FM radio
+
+//nesting arguments
+{PMOsc.ar(440, MouseX.kr(1, 550), MouseY.kr(1, 15))}.play;
+
+//use keyword assignments
+{PMOsc.ar(100, 500, 10, 0, 0.5)}.play; //all arguments are listed in order
+{PMOsc.ar(carfreq:100, modfreq:500, pmindex:10, mul:0.5)}.play; //keywords
+{PMOsc.ar(carfreq:100, mul:0.5, pmindex:10, modfreq:500)}.play; //mixed
+
+//args in any order
+{SinOsc.ar(mul:MouseX.kr(0, 1.0))}.scope;
+
+(
+{PMOsc.ar(
+	carfreq: Line.kr(0.25, 1000, 0.25),
+	modfreq: Line.kr(0.2, 200, 0.125),
+	pmindex: Line.kr(125, 0.5, 0.3),
+	mul: 0.5
+)}.play;
+)
+
+
+//Figure 1.4: VCO, VCF, VCA
+(
+{
+	Blip.ar(
+		TRand.kr( //frequency of VCO
+			100, 1000,
+			Impulse.kr(Line.kr(1,20,60))), //trigger
+		TRand.kr( //# harmonics of VCF
+			1,10, //range
+			Impulse.kr(Line.kr(1,20,60))),
+		Linen.kr(
+			Impulse.kr(Line.kr(1,20,60)),
+			0,
+			0.5,
+			1/Line.kr(1,20,60))
+	)
+}.play;
+)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
