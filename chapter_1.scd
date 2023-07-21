@@ -162,17 +162,17 @@ dup({rand(1000.0)}, 5) //duplicates the function of picking a random number
 (
 {
 	Blip.ar(
-		TRand.kr( //frequency of VCO
+		TRand.kr( //frequency, or VCO
 			100, 1000,
 			Impulse.kr(Line.kr(1,20,60))), //trigger
-		TRand.kr( //# harmonics of VCF
+		TRand.kr( //# harmonics, or VCF
 			1,10, //range
-			Impulse.kr(Line.kr(1,20,60))),
-		Linen.kr(
-			Impulse.kr(Line.kr(1,20,60)),
-			0,
-			0.5,
-			1/Line.kr(1,20,60))
+			Impulse.kr(Line.kr(1,20,60))), //trigger
+		Linen.kr( //mul, or amp VCA
+			Impulse.kr(Line.kr(1,20,60)), //trigger
+			0, //attack
+			0.5, //sustain level
+			1/Line.kr(1,20,60)) //trigger
 	)
 }.play;
 )
