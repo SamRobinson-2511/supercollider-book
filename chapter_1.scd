@@ -391,8 +391,6 @@ same bus number: Out. kr(1950, 2 SomeControl.kr), then SinOsc.ar (In. kr (1950, 
 
 
 //Figure 1.9: Connecting controls with a bus
-
-
 (
 // if these haven't been used, they will hold 0
 ~kbus1 = Bus.control; //a control bus
@@ -421,15 +419,9 @@ same bus number: Out. kr(1950, 2 SomeControl.kr), then SinOsc.ar (In. kr (1950, 
 }.play;
 )
 
+~kbus3 = Bus.control; //a control bus
+~kbus4 = Bus.control; //a control bus
 
 
-
-
-
-
-
-
-
-
-
+{Out.kr(~kbus3, SinOsc.kr(3).scope("out3") * 100)}.play;
 
