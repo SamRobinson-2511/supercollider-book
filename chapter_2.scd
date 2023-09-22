@@ -183,9 +183,8 @@ SynthDef(\UGen_ex5, {
 	env = EnvGen.kr(Env([0,1,0], [1,4], [4,-4], 1), gate, doneAction: 2);
 	src = WhiteNoise.ar;
 	trigger = Impulse.kr(Rand.new());
-
 }).add;
 )
 
-
+s.boot;
 
