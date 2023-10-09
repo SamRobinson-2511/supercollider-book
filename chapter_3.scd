@@ -252,7 +252,7 @@ SynthDef(\playbuf, {
 	)
 }).add;
 //load all the paths in the sounds/ folder into buffers
-~someSounds = "sounds/*".pathMatch.collect{|path| Buffer.read(s, path)};
+~someSounds = "/Volumes/Samsung 870 QVO/SAMPLES/rhythm-lab.com_amen_vol.1/WAV/*".pathMatch.collect{|path| Buffer.read(s, path)};
 )
 //now here's the score, so to speak
 //execute one line at a time
@@ -267,15 +267,172 @@ SynthDef(\playbuf, {
 //3.2.3: Cue Players
 //play from RAM or HD?
 
-~myBuffer = Buffer.read(s, "Desktop/SAMPLES copy/*.wav");
+~myBuffer = Buffer.read(s, "/Volumes/Samsung 870 QVO/SAMPLES/rhythm-lab.com_amen_vol.1/WAV/cw_amen20_164.wav");
+~myBuffer.play; //play it and notice it will release the node after playing
 
 
 
+//Figure 3.8: Play cues with a simple GUI
+
+(
+SynthDef(\playbuf, {
+	|out=0, buf, gate=1|
+	Out.ar(out, PlayBuf.ar(1, buf, BufRateScale.kr(buf), loop:1.0) * Linen.kr(gate, doneAction:2) * 0.6;)
+}).add;
+~someSounds = "/Volumes/Samsung 870 QVO/SAMPLES/rhythm-lab.com_amen_vol.1/WAV/*".pathMatch.collect{|path| Buffer.read(s, path)};
+n = 0; //a counter
+
+//GUI code
+w = Window.new("Simple CuePlayer", Rect(400, 400, 200, 30)).front;
+w.view.decorator = FlowLayout(w.view.bounds);
+Button.new(w, Rect(0, 0, 80, 20)).states_([["Play Cue", Color.black, Color.clear]]).action_({
+	if(n < ~someSounds.size, {
+		if(n != 0, {~nowPlaying.release;});
+		~nowPlaying = Synth(\playbuf, [buf: ~someSounds[n]]); n=n+1;
+	});
+});
+//this sets the counter to the first queue
+Button.new(w, Rect(0, 0, 80, 20)).states_([["Stop / Reset", Color.black, Color.clear]]).action_({n=0; ~nowPlaying.release; });
+//free the buffers when the window is closed
+w.onClose = {~someSounds.do(_.free);};
+)
+
+//Figure 3.9: Gathering up files for multichannel cues
+
+// gather all you folder paths
+//this will path match each folder in the collection, i.e. we will have a collection of collections of paths
+~groupOfindivCueFolders = "/Volumes/Samsung 870 QVO/SAMPLES/rhythm-lab.com_amen_vol.1/WAV/*".pathMatch.collect{|item| (item.asSymbol++"*").pathMatch };
+
+Post << ~groupOfindivCueFolders; //see them all
+
+//check how many cues you will have in the end
+~groupOfindivCueFolders.size;
+
+//automate the buffering process for all cues
+~bufferedCues = ~groupOfindivCueFolders.collect{|item, i| item.collect{|path| Buffer.read(s, path)}}; //now all cue files in buffers
+
+~bufferedCues[0]; //here is cue 1
+
+//play them all in a Group, using our previous SynthDef
+//we use bind here to ensure they start simultaneously
+(
+s.bind({
+	~nowPlaying = Group.new(s); // a group to put all the channel synths in
+	~bufferedCues[0].do({|cue| Synth(\playbuf, [buf:cue], ~nowPlaying)})
+});
+)
+~nowPlaying.release;
+
+
+//3.3: Generating Sound Material
+
+//3.3.1: Recording
+//make a sound that responds idiosyncratically to input amplitude
+//Server class:
+
+
+s.boot;
+(
+//evaluate first
+b = Buffer.read(s, "/Volumes/Samsung 870 QVO/SAMPLES/rhythm-lab.com_amen_vol.1/WAV/cw_amen01_175.wav"); //a source
+s.prepareForRecord; //prepare the server to record (you must do this first)
+s.recSampleFormat_("int16");
+)
+
+(
+//simultaneously start the processing and recording
+s.bind({
+	//here's our funky effect
+	x = {var columbia, amp;
+		columbia = PlayBuf.ar(1, b, loop:1);
+		amp = Amplitude.ar(columbia, 0.5, 0.5, 4000, 250); //'sticky' amp follower
+		Out.ar(0, Resonz.ar(columbia, amp, 0.02, 3)); // filter freq follows amp
+	}.play;
+s.record;
+})
+)
+
+s.pauseRecording; //pause recording
+s.record; //start recording again
+s.stopRecording;
+
+x.free;
+
+//3.3.2: Thinking in the abstract
+
+//generalize code
+(
+{
+	Resonz.ar(Dust.ar(5), 300, 0.001, 100) + Resonz.ar(Dust.ar(5), 600, 0.001, 100) + Resonz.ar(Dust.ar(5), 900, 0.001, 100) * 3.reciprocal;
+}.play;
+)
+
+//abstracted
+
+(
+f = 300;
+n = 3;
+{
+	Mix.fill(n, {|i| Resonz.ar(Dust2.ar(5), f*(i+1), 0.001, 100)}) * n.reciprocal;
+}.play;
+)
+
+
+(
+f = 40;
+n = 50;
+{
+	Mix.fill(n, {|i| Resonz.ar(Dust2.ar(5), f*(i+1), 0.001, 100)}) * n.reciprocal;
+}.play;
+)
+
+//Figure 3.12: A variable number of resonators with an automatically created GUI
+(
+f = 300;
+n = 30; //number of resonators
+t = Array.fill(n, {|i|
+	{
+		Resonz.ar(Dust2.ar(5), f * (i + 1), 0.001, 300) * n.reciprocal; //scale to ensure no clipping
+	}.play;
+});
+
+
+//now make a GUI (scrolling window so we don't run out of space)
+
+w = Window.new("Buttons", Rect(50, 100, 290, 250), scroll:true);
+w.view.decorator = FlowLayout.new(w.view.bounds); //auto layout the widgets
+n.do({|i|
+	Button.new(w, Rect(0, 0, 130, 30)).states_([
+		["Freq" + (f *(i+1)) + "On", Color.black, Color.white],
+		["Freq" + (f *(i+1)) + "Off", Color.white, Color.black]
+	])
+	.action_({|butt| t[i].run(butt.value == 0);
+	});
+});
+w.front;
+)
 
 
 
+//3.3.3: Gestures
+//3.3.4: Making Empty Gestures
 
+//1. make a list where buffers will be stored
 
+(
+//you will be able to add multiple sound files: just shift click when selecting
+var file, soundPath;
+~buffers = List[];
+Dialog.openPanel({
+	|paths|
+	paths.do({
+		|soundPath|
+		soundPath.postln; //post the path to verify that it is the one you expect
+		~buffers.add(Buffer.read(s, soundPath););
+	});
+});
+)
+~buffers.size;
 
 
 
