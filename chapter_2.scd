@@ -256,19 +256,264 @@ SynthDef(\UGen_ex6, {
 )
 
 a = Synth(\UGen_ex6);
+a.release;
+
+//Figure 2.7: Audio rate and control rate comparisons
+
+(
+SynthDef(\UGen_ex7a, {
+	|gate=1, freq=440, amp=0.1, rate=0.2|
+	var src, pos, env;
+	src = SinOsc.ar(freq, 0);
+	pos = LFNoise2.ar(rate);
+	env = EnvGen.kr(
+		Env([0,1,0], [1,1], \sin, 1), gate, levelScale: amp, doneAction: 2);
+	Out.ar(0, Pan2.ar(src, pos) * env);
+}).add;
+
+SynthDef(\UGen_ex7b, {
+	|gate=1, freq=440, amp=0.1, rate=0.2|
+	var src, pos, env;
+	src = SinOsc.ar(freq, 0);
+	pos = LFNoise2.kr(rate);
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, levelScale:amp, doneAction:2);
+	Out.ar(0, Pan2.ar(src, pos) * env);
+}).add;
+
+SynthDef(\UGen_ex7c, {
+	|gate=1, freq=440, amp=0.1, rate=0.2|
+	var src, pos, env;
+	src = SinOsc.ar(freq, 0);
+	pos = LFNoise2.kr(rate);
+	env = EnvGen.kr(Env([0,1,0], [1, 1], \sin, 1), gate, levelScale:amp, doneAction:2);
+	Out.ar(0, Pan2.ar(src * env, pos));
+}).add;
+)
+
+(
+a = Group.new;
+250.do({
+	Synth(\UGen_ex7a, [\freq, 440.0.rrand(1760.0), \amp, 0.001, \rate, 0.2], a);
+});
+)
+a.release;
+
+(
+a = Group.new;
+250.do({
+	Synth(\UGen_ex7b, [\freq, 440.0.rrand(1760.0), \amp, 0.001, \rate, 0.2], a);
+});
+)
+a.release;
+
+(
+a = Group.new;
+250.do({
+	Synth(\UGen_ex7c, [\freq, 440.0.rrand(1760.0), \amp, 0.001, \rate, 0.2], a);
+});
+)
+a.release;
 
 
+//Figure 2.8: Signal Routing Optimizations
+
+(
+SynthDef(\UGen_ex8a, {
+	|gate=1, freq=440, amp=0.1, rate=0.2|
+	var w, x, y, out, env, decode;
+	#w, x, y = PanB2.ar(
+		SinOsc.ar(freq, 0), LFNoise2.kr(rate));
+	env = EnvGen.kr(Env([0, 1, 0], [1, 1], \sin, 1), gate, levelScale: amp, doneAction:2);
+	decode = DecodeB2.ar(2, w, x, y);
+	Out.ar(0, decode * env);
+}).add;
+
+SynthDef(\UGen_ex8b, {
+	|outbus, freq=440, rate=0.2|
+	var w, x, y;
+	#w, x, y = PanB2.ar(SinOsc.ar(freq, 0), LFNoise1.kr(rate));
+	Out.ar(outbus, [w, x, y])
+}).add;
+
+SynthDef(\UGen_ex8c, {
+	|inbus, gate=1, amp=0.1|
+	var w, x, y, env, decode;
+	#w, x, y = In.ar(inbus, 3);
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, levelScale: amp, doneAction:14);
+	decode = DecodeB2.ar(2, w, x, y) * env;
+	ReplaceOut.ar(0, decode);
+}).add;
+)
+
+(
+a = Group.new;
+250.do({
+	Synth(\UGen_ex8a, [\freq, 440.0.rrand(1760.0), \amp, 0.001, \rate, 0.2], a)
+});
+)
+a.release;
+
+(
+a = Group.new;
+z = Bus.audio(s, 3);
+
+// the catch-all synth for decoding and enveloping
+
+Synth(\UGen_ex8c, [\inbus, z, \amp, 0.001], a, \addToTail);
+
+//add it to the tail of the Group containing the encoding synths
+
+250.do({
+	Synth(\UGen_ex8b, [\freq, 440.0.rrand(1760.0), \outbus, z, \rate, 0.2], a);
+});
+)
+
+a.release;
 
 
+//Figure 2.9: Client-side calculations versus server-side calculations
+
+(
+//pass in amp in db
+SynthDef(\UGen_ex9a, {
+	|gate=1, freq=440, amp=0|
+	var src, env;
+	src = SinOsc.ar(freq, 0, amp.dbamp);
+	env = EnvGen.kr(Env([0,1,0], [1, 1], \sin, 1), gate, doneAction:2);
+	Out.ar(0, Pan2.ar(src * env, Rand(-1.0, 1.0)));
+}).add;
+
+//pass in linear amplitude
+SynthDef(\UGen_ex9b, {
+	|gate=1, freq=440, amp=1|
+	var src, env;
+	src = SinOsc.ar(freq, 0, amp);
+	env = EnvGen.kr(Env([0, 1, 0], [1,1], \sin, 1), gate, doneAction:2);
+	Out.ar(0, Pan2.ar(src * env, Rand(-1.0, 1.0)));
+}).add;
+
+SynthDef(\UGen_ex9c, {
+	|gate=1, freq=440, amp= -3, pos=0|
+	var src, env;
+	src = SinOsc.ar(freq, 0, amp);
+	env = EnvGen.kr(Env([0, 1, 0], [1, 1], \sin, 1), gate, doneAction:2);
+	Out.ar(0, Pan2.ar(src * env, pos));
+}).add;
+)
+
+(
+a = Group.new;
+250.do({
+	Synth(\UGen_ex9a, [\freq, 440.0.rrand(1760.0), \amp, -60], a)
+});
+)
+a.release;
 
 
+(
+a = Group.new;
+250.do({
+	Synth(\UGen_ex9b, [\freq, 440.0.rrand(1760.0), \amp, -60.dbamp], a)
+});
+)
+a.release;
+
+(
+a = Group.new;
+250.do({
+	Synth(\UGen_ex9c, [\freq, 440.0.rrand(1760.0), \amp, -60.dbamp, \pos, 1.0.rand2], a)
+});
+)
+a.release;
 
 
+//Figure 2.10: Interpolation methods in delays, and the processor and sonic differences
+
+(
+SynthDef(\UGen_ex10a, {
+	|gate=1|
+	var src, delay, env;
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, doneAction:2);
+	src = Decay.ar(Impulse.ar(1), 1.0, PinkNoise.ar(0.1));
+	delay = CombN.ar(src, 0.1, Line.kr(0.0001, 0.001, 10));
+	Out.ar(0, (delay * env).dup);
+}).add;
+
+SynthDef(\UGen_ex10b, {
+	|gate=1|
+	var src, delay, env;
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, doneAction:2);
+	src = Decay.ar(Impulse.ar(1), 1.0, PinkNoise.ar(0.1));
+	delay = CombL.ar(src, 0.1, Line.kr(0.0001, 0.001, 10));
+	Out.ar(0, (delay * env).dup);
+}).add;
+
+SynthDef(\UGen_ex10c, {
+	|gate=1|
+	var src, delay, env;
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, doneAction:2);
+	src = Decay.ar(Impulse.ar(1), 1.0, PinkNoise.ar(0.1));
+	delay = CombC.ar(src, 0.1, Line.kr(0.0001, 0.001, 10));
+	Out.ar(0, (delay * env).dup);
+}).add;
+)
+
+a = Synth(\UGen_ex10a);
+a.release;
+
+a = Synth(\UGen_ex10b);
+a.release;
+
+a = Synth(\UGen_ex10c);
+a.release;
 
 
+(
+SynthDef(\UGen_ex10d, {
+	|gate=1, deltime=0.001|
+	var src, delay, env;
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, doneAction:2);
+	src = Decay.ar(Impulse.ar(1), 1.0, PinkNoise.ar(0.1));
+	delay = CombN.ar(src, 0.1, deltime);
+	Out.ar(0, (delay * env).dup);
+}).add;
 
+SynthDef(\UGen_ex10e, {
+	|gate=1, deltime=0.001|
+	var src, delay, env;
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, doneAction:2);
+	src = Decay.ar(Impulse.ar(1), 1.0, PinkNoise.ar(0.1));
+	delay = CombL.ar(src, 0.1, deltime);
+	Out.ar(0, (delay * env).dup);
+}).add;
 
+SynthDef(\UGen_ex10f, {
+	|gate=1, deltime=0.001|
+	var src, delay, env;
+	env = EnvGen.kr(Env([0,1,0], [1,1], \sin, 1), gate, doneAction:2);
+	src = Decay.ar(Impulse.ar(1), 1.0, PinkNoise.ar(0.1));
+	delay = CombC.ar(src, 0.1, deltime);
+	Out.ar(0, (delay * env).dup);
+}).add;
+)
 
+a = Synth(\UGen_ex10d, [\deltime, 100.midicps.reciprocal])
+a.release;
+
+a = Synth(\UGen_ex10e, [\deltime, 100.midicps.reciprocal])
+a.release;
+
+a = Synth(\UGen_ex10f, [\deltime, 100.midicps.reciprocal])
+a.release;
+
+a = Synth(\UGen_ex10d, [\deltime, 0.1])
+a.release;
+
+a = Synth(\UGen_ex10e, [\deltime, 0.1])
+a.release;
+
+a = Synth(\UGen_ex10f, [\deltime, 0.1])
+a.release;
 
 
 
