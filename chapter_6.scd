@@ -301,3 +301,23 @@ Pchain(
 ~score.render(thisProcess.platform.recordingsDir ++ "/test.aif");
 SoundFile(thisProcess.platform.recordingsDir ++ "/test.aif").play;
 )
+
+
+
+//6.4: Timing Considerations
+
+//6.4.1: Timing and Articulation
+
+//using \lag and \timingOffset and \strum
+
+
+(lag: 0, strum: 0.1, note: [12, 16, 19], sustain: 1).play;
+
+//negative values for \strum will cause the notes in the chord to precede the beat
+
+//strumEndsTogether = true: individual notes will be lengthened or shortened to end the chord at the time specified by \sustain
+
+(lag: 0, strum: -1, note: [12, 16, 19], sustain: 1).play;
+
+
+
