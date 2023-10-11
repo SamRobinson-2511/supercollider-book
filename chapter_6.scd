@@ -213,6 +213,18 @@ d.free;
 
 
 //6.3.5: Defining Patterns with Pfunc and Prout
+(
+Prout({|ev| //modifies protoEvents
+	ev = (freq: 400).embedInStream(ev.copy);
+	ev = (freq: 500).embedInStream(ev.copy);
+	ev = (freq: 600).embedInStream(ev.copy);
+	ev = (freq: 700).embedInStream(ev.copy);
+	ev = (freq: 800).embedInStream(ev.copy);
+	ev = (freq: 900).embedInStream(ev.copy);
+}).play;
+)
+
+
 //Figure 6.10: Using a Prout to define and play patterns on the fly
 
 (
@@ -234,3 +246,58 @@ Prout({
 }).play;
 )
 
+//Figure 6.11: Using Prout to define value and event patterns
+
+(
+~patA = Pbind(*[
+	dur: 0.2,
+	degree: Prout({ |ev|
+		var noteArray = (0..5);
+		loop {
+			ev = Pseq(noteArray).embedInStream(ev);
+			noteArray[6.rand] = 7.rand;
+		}
+	})
+]);
+
+~patB = Prout({|ev|
+	var pat, pats = [
+		Pbind(*[degree: Pseq([ 0, 7]), dur: 0.2 ]),
+		Pbind(*[degree: Pseq([ 11, 7]), dur: 0.2 ]),
+		Pbind(*[degree: Pseq([ 16, 7]), dur: 0.2 ]).
+		(type: \rest, delta: 1)
+	];
+
+	loop {
+		pat = pats.choose;
+		ev = pat.embedInStream(ev);
+	}
+});
+
+Pchain(
+	Pbind(*[
+		db: Pn(Pstep([-15, -25, -25, -20, -30, -25], 0.2)) + Pseg([-30, -5, -10, -40], 12)
+	]),
+	Ptpar([
+		0, ~patA,
+		0, ~patA,
+		12, ~patB
+	])
+).play;
+)
+
+//Figure 6.12: Rendering and playing a pattern
+
+(
+~pattern = Pbind(*[
+	instrument: \default,
+	freq: Pseq([100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, 1100], 5),
+	db: Pseq([-10, -30, -20, -30], inf),
+	dur: Pseq([0.2, 0.2, 0.2, 0.2, 0.4, 0.4, 0.8], inf),
+	legato: Pseq([2, 0.5, 0.75, 0.5, 0.25], inf)
+]);
+
+~score = ~pattern.asScore(24 * 11/7);
+~score.render(thisProcess.platform.recordingsDir ++ "/test.aif");
+SoundFile(thisProcess.platform.recordingsDir ++ "/test.aif").play;
+)
