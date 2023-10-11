@@ -126,6 +126,111 @@ group: 2
 //detune rotates through each note in the chord
 (degree: [-3, 2, 4], sustain: 2, detune: [0,0,0,3,3,3,5,5,5]).play;
 
+//6.2.3: Note Events and Chords
+
+//6.3: Patterns
+//6.3.1: An Overview of Patterns and Streams
+
+//Patterns = musical notation
+//Trivial Patterns: a pattern that specifies a sequence whose values are simply the sequence itself
+//Nontrivial Patterns: specify sequences with changing values (i.e. Numbers and Symbols)
+
+//.asStream: plays pattern, returns Sream object that will generate the sequence
+//one element at a time with .next
+//Event Streams: streams created by event patterns
 
 
+//6.3.2: Combining Patterns
+//Patterns: can be used recursively in the definition of other patterns
+
+//Numerical patterns can be combined arithmetically
+
+a = Pseq([1, 2, 3], 1);
+b = Pseq([a, 3, 2, 1], 2);
+a + b;
+a * b * 33;
+midiratio(b);
+a round: 4;
+
+//Event patterns: cannot be combined arithmetically. Sequential and Parallel combinations are made using the patterns Pseq and Ppar
+
+a = Pbind(*[dur: Pseq([0.4], 5)]);
+b = Pbind(*[degree: Pseq([10, 6,], inf), dur: Pseq([0.5], 4)]);
+
+Pseq([a, b], 2).play;
+Ppar([a, b], 4).play;
+
+
+//6.3.3: Time-Based Pattern Classes
+//Pstep + Pseg: specify sequences that are sampled as functions of time
+
+//6.3.4: Interdependent Key Values in Event Patterns
+
+(
+Pbind(*[
+	#[degree, dur], Pseq([[0,1], [3, 1/2], [6, 1/3], [8, 1/4], [7, 1]]),
+	db: -20
+]).play;
+)
+
+//Figure 6.8: Interdependent key values in a pattern
+(
+Pbind(*[
+	stretch: Pseg([0, 0.1, 0.2, 1], 8).linexp(0, 1, 1, 0.125),
+	midinote: 100.cpsmidi,
+	harmonic: Pwhite(1, 16),
+	legato: Pkey(\stretch) * Pkey(\harmonic)/2,
+	db: -10 - Pkey(\harmonic),
+	detune: Pwhite(0.0, 3.0),
+	dur: 0.2
+]).play;
+)
+
+//Figure 6.9: Chaining event patterns
+(
+a = Pbind(*[
+	scale: Pn( Pstep([[0,2,4,5,7,9,11], [0,1,3,5,6,8,11]], 5) ),
+	db: Pn(Pseg([-20, -30, -25, -30], 0.4))
+]);
+
+b = Pbind(*[
+	degree: [0,2,4],
+	mtranspose: Pbrown(0, 6, 1),
+	dur: 0.4,
+	db: -35
+]);
+
+c = Pbind(*[
+	degree: [0, 2, 4],
+	mtranspose: Pbrown(0, 6, 1),
+	dur: 0.4,
+	db: -35
+]);
+d = Pchain(Ppar([b, c]),a);
+d.play;
+)
+d.free;
+
+
+//6.3.5: Defining Patterns with Pfunc and Prout
+//Figure 6.10: Using a Prout to define and play patterns on the fly
+
+(
+Prout({
+	|ev|
+	var pat, refPat;
+	refPat = Pbind(*[dur: 0.2, note: Pseq([0, 0, 0, 7, 0, 7])]);
+
+	loop {
+		ev = refPat.embedInStream(ev);
+
+		pat = Pbind(*[
+			dur: [0.2, 0.4].choose,
+			note: Pseq(Array.fill(5, { 10.rand }), 3.rand )
+		]);
+		ev = pat.embedInStream(ev);
+
+	}
+}).play;
+)
 
