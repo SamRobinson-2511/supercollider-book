@@ -418,24 +418,38 @@ w.front;
 //3.3.4: Making Empty Gestures
 
 //1. make a list where buffers will be stored
+s.boot;
 
 (
-//you will be able to add multiple sound files: just shift click when selecting
+//you will be able to add multiple sound files; just shift click when selecting!
 var file, soundPath;
 ~buffers = List[];
 Dialog.openPanel({
 	|paths|
 	paths.do({
 		|soundPath|
-		soundPath.postln; //post the path to verify that it is the one you expect
+		soundPath.postln;
 		~buffers.add(Buffer.read(s, soundPath););
 	});
 });
+
 )
 ~buffers.size;
+~buffers[0];
+~buffers[0].play;
+(
+//buffer player with done action control of envelope and panning
+SynthDef(\samplePlayer, {
+	|out=0, buf=0, rate=1, at=0.01, rel=0.1, pos=0, pSpeed=0, lev=0.5|
+	var sample, panT, amp, aux;
+	sample = PlayBuf.ar(1, buf, rate*BufRateScale.kr(buf), 1, 0, 0);
+	panT = FSinOsc.kr(pSpeed);
+	amp = EnvGen.ar(Env.perc(at, rel, lev), doneAction:20);
+	Out.ar(out, Pan2.ar(sample, panT, amp));
+}).add;
+)
 
-
-
+Synth(\samplePlayer, [\out, 0, \bufnum, ~buffers[0], \rel, 0.25]);
 
 
 
