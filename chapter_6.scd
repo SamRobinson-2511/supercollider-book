@@ -320,4 +320,66 @@ SoundFile(thisProcess.platform.recordingsDir ++ "/test.aif").play;
 (lag: 0, strum: -1, note: [12, 16, 19], sustain: 1).play;
 
 
+//6.4.2: Audio Rate, Control Rate, and Sample Accurate Scheduling
+
+//Figure 6.13: Sound file granulation with a pattern
+
+(
+SynthDef(\playBuf, {
+	|out=0, bufnum=0, rate=1, startPos=0, amp=0.1, sustain=1, pan=0, gate=1|
+	var audio, env;
+	rate = rate * BufRateScale.kr(bufnum);
+	startPos = startPos * BufFrames.kr(bufnum);
+	env = EnvGen.kr(Env.sine, 1, timeScale: sustain, doneAction: 2);
+	audio = PlayBuf.ar(1, bufnum, rate, 1, startPos, 0);
+	audio = env * audio;
+	audio = Pan2.ar(audio, pan, amp);
+	OffsetOut.ar(out, audio);
+}).add;
+
+Pseq([
+	(
+		type: \load,
+		filename: "sounds/a11wlk01.wav",
+		bufnum: 1,
+		delta: 0
+	),
+
+	Pbind(*[
+		instrument: \playbuf,
+		type: \on,
+		id: -1,
+		dur: Pseg([0,1], 21).linexp(0, 1, 0.01, 2),
+		legato: 4,
+		startPos: Pn(Pseg([0,1], 10)),
+		bufnum: 1
+	]),
+	(
+		type: \free,
+		bufnum: 1
+	)
+]).play(quant:0)
+)
+
+//6.4.3: Freeing Synths
+//"The single most common mistake made when first working with patterns is to write a SynthDef that does not free created synths when they are done."
+//help-file: UGen-doneActions
+
+//6.5: Real-Time Performance and Interactive Control of Patterns
+
+//6.5.1: TempoClocks and Quantization
+
+//play(clock, protoEvent, quant)
+// -clock: TempoClock.default
+// -protoEvent: Event used to set default values for the pattern
+// -quant: quantization value that constrains when the pattern will begin playing
+
+//returns: EventStreamPlayer object
+//messages: play, pause, resume, stop
+
+
+
+
+
+
 
