@@ -239,3 +239,35 @@ action = increment_func;
 
 //Class Variable: defined once for the class to which it belongs
 // - shared with all sub-classes
+
+
+//5.3.5: Enivronment Variables
+//Environment Variables:
+// - preceded by ~
+
+
+
+//Figure 5.11: currentEnvironment
+
+
+//run each line separately
+currentEnvironment; //empty if no environment variables have been set
+~alpha = pi; // set env. variable ~alpha to pi
+currentEnvironment; //see current Environment again: ~alpha is set
+~freq = 800; //set another environment variable
+Server.local.boot;
+{ LFNoise0.ar(~freq, 0.1) }.play; //use an environment variable
+~alpha = nil; //setting an environment variable to nil is equivalent to removing it
+currentEnvironment; //alpha is no longer set
+
+
+//5.3.6.1: Interpreter Variables
+
+n = { |freq=400| LFDNoise1.ar(freq, 0.1) }.play; //store a synth in n
+n.set(\freq, 1000);  //set the freq parameter of the synth to 1000
+n.free; //free the synth (stop its sound)
+
+
+
+
+
