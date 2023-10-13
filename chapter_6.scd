@@ -377,7 +377,25 @@ Pseq([
 //returns: EventStreamPlayer object
 //messages: play, pause, resume, stop
 
+//6.5.2: Compensation for Delays Between the Language and the Server
+//6.5.3: Conduction with PatternConductor
+//6.5.4: Conductor and CV
+//6.6: Appendix 1: How Patterns are Performed by Streams
+//6.6.1: Defining Streams with Patterns and Routines:
+//trivial pattern = trivial stream
 
+//Figure 6.14: yield versus embedInStream
+(
+r = Routine{
+	Pseq([1, 2, 3]).yield;
+	Pseq([1,2,3]).embedInStream;
+	123445.embedInStream;
+	123445.embedInStream;
+};
+
+[next(r), next(r), next(r), next(r), next(r)];
+
+)
 
 
 
