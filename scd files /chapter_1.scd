@@ -1,4 +1,4 @@
-s.boot;
+
 
 
 Server.default = s = Server.internal.boot;
