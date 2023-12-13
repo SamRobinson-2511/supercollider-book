@@ -271,7 +271,28 @@ n.free; //free the synth (stop its sound)
 //Not declared anywhere in the SC library
 //Provided by compiler
 
-//
+//this: represents object running the current method
+
+//thisProcess: process running the current code
+//always an instance of Main
+
+//thisMethod: method in within which the current statement is running
+
+//thisFunction: innermost function withing which the current statement is running
+//indispensable for recursion in functions
+
+//thisFunctionDef: definition of innermost function within which the current statement is running
+//contains information about the names and default values of arguments and variables
+
+//thisThread: thread running current code
+//thread: sequence of execution that can run in parallel with other threads and can control the time of the execution of individual statements in the program
+
+//super: redirects the message sent to it to look for a method belonging to the superclass of the object in which the method of the current code is running
+//used to extend a method in a subclass
+
+
+
+
 
 
 
