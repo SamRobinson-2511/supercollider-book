@@ -428,7 +428,7 @@ Dialog.openPanel({
 	|paths|
 	paths.do({
 		|soundPath|
-		soundPath.postln;
+		soundPath.post;
 		~buffers.add(Buffer.read(s, soundPath););
 	});
 });

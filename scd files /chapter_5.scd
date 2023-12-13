@@ -267,7 +267,11 @@ n = { |freq=400| LFDNoise1.ar(freq, 0.1) }.play; //store a synth in n
 n.set(\freq, 1000);  //set the freq parameter of the synth to 1000
 n.free; //free the synth (stop its sound)
 
+//5.3.6.2: Pseudo variables
+//Not declared anywhere in the SC library
+//Provided by compiler
 
+//
 
 
 
