@@ -292,6 +292,114 @@ n.free; //free the synth (stop its sound)
 
 
 
+//5.3.6.3: Class variables of Object
+
+//currentEnvironment: Environment currently being used
+//topEnvironment: original currentEnvironment
+//uniqueMethods: holds a dictionary that stores unique methods of objects
+
+
+//Figure 5.12: topEnvironment versus currentEnvironment
+(
+~a = "TOP"; //store "TOP" in ~a, top environment
+(a: "INNER") use: { //run function in environment with ~a = "INNER"
+	currentEnvironment.postln;
+	topEnvironment.postln;
+	~a.postln;
+};
+~a;
+)
+
+(
+//create 2 windows and store them in variables p, q
+#p, q = [100, 400].collect{|i|
+	Window(i.asString, Rect(i, i, 200, 200)).front
+};
+)
+
+//add a unique method to p only
+p.addUniqueMethod(\greet, {|w| w.name = "Hello!"});
+p.greet; //p understands 'greet'
+q.greet; //q does not understand 'greet'
+
+//dependantsDictionary: stores dependants of Objects
+//a dependant of an Object o is any object that needs to be notified when o changes in some way
+
+//5.3.7: Variables versus Reference
+
+var aref, cvar;
+aref = Ref.new; //first create the reference and store it in aref
+cvar = aref; //then store the contents of aref in cvar
+
+//Figure 5.13: Variables store only values, not other variables
+
+(
+var alpha, beta, gamma;
+gamma = alpha; //storing variable alpha in gamma only stores nil
+alpha = 10; //store 10 in alpha
+gamma.postln; //but the value of gamma remains unchanged
+alpha = beta; //so one cannot use gamma as 'joker'
+beta = 20; //to switch between variables alpha and beta
+gamma.postln; //gamma is still nil
+)
+var aref;
+aref.value = 10;
+cvar.value.postln;
+
+
+//5.4: Functions
+
+{1+1}.value;
+
+//5.4.1: Return Value versus Side Effect
+
+
+
+//Figure 5.15: Multiple use of a function stored in a variable
+Server.default.boot;
+
+(
+//Define a function and call it in different contexts
+var synth; //Synth creating the sound that is changed
+var freq = 220; //frequency of the sound
+var change_freq; //function that changes the frequency of the sound
+var window; //window holding buttons for changing the sound
+var button1, button2, button3; //buttons changing the sound
+
+//Create a synth that plays the sound to be controlled;
+synth = {|freq = 220| LFTri.ar([freq, freq*2.01], 0, 0.1)}.play;
+
+//Create frequency changing function and store it in variable change_freq
+change_freq = {
+	freq = freq * [0.9, 0.9.reciprocal].choose;
+	synth.set(\freq, freq);
+};
+
+window = Window("Buttons Archaic", Rect(400, 400, 340, 120));
+
+button1 = Button(window, Rect(10, 10, 100, 100));
+button1.states = [["I"]];
+button1.action = change_freq;
+
+button2 = Button(window, Rect(120, 10, 100, 100));
+button2.states = [["II"]];
+button2.action = {
+	{3 do: { change_freq.value; 0.4.wait } }.fork;
+};
+
+button3 = Button(window, Rect(230, 10, 100, 100));
+button3.states = [["VIII"]];
+button3.action = {
+	{8 do: { change_freq.value; 0.1.wait }}.fork;
+};
+
+[button1, button2, button3] do: _.font_(Font("Times", 32));
+window.onClose = {synth.free};
+window.front;
+
+)
+
+
 
 
 
