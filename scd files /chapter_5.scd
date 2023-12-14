@@ -520,11 +520,64 @@ while {sum = sum + exprand(0.1, 3); sum < 10} {sum.postln}
 )
 
 //5.4.8: Partial Application: Shortcut Syntax for Small Functions
+//_ as placeholder for an argument
+
+//5.4.9: Recursion
+//Recursion: a special form of iteration in which a function calls itself from inside its own code
+
+//
+(
+_.isPrime ! 10
+_.squared ! 10
+_@_.(30, 40) //equivalent to: {|a, b| Point(a, b)}.value(30, 40)
+
+Array.rand(12, 0, 1000).clump(4) collect: Rect(*_)
+(1..8).collect([\a, \b, _]);
+(a: _, b: _, c: _, d: _, e: _).(*Array.rand(5, 0, 100));
+
+)
 
 
 
+//Figure 5.26: Iterative Factorial
+(
+var iterative_factorial;
+iterative_factorial = {|n|
+	var factorial = 1;
+	n do: { |i| factorial = factorial * (i +1)};
+	factorial;
+};
+iterative_factorial.(10).postln;
+)
 
 
+
+//5.4.10: Inspecting the Structure of a Function
+
+(
+var foo;
+foo = {|a=1, b=2| a.pow(b)};
+foo.def.sourceCode.postln;
+)
+
+//Figure 5.27: Recursive Factorial
+(
+f = {|x| if ( x> 1) {x * thisFunction.value(x-1)} {x} };
+f.value(10);
+)
+
+//Figure 5.28: Recursion over a tree of unknown structure
+(
+{| path |
+	var thisFunc = thisFunction;
+	format("====== now exploring: %", path).postln;
+	path.pathMatch do: {|p|
+		if (p.last == $/) { thisFunc.(p ++ "*") }{ p.postln }
+	}
+}.("*")
+
+)
+p.stop;
 
 
 
