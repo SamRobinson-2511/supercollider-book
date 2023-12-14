@@ -353,7 +353,7 @@ cvar.value.postln;
 
 //5.4.1: Return Value versus Side Effect
 
-
+//5.4.2: Functions as Program Mode
 
 //Figure 5.15: Multiple use of a function stored in a variable
 Server.default.boot;
@@ -396,8 +396,166 @@ button3.action = {
 [button1, button2, button3] do: _.font_(Font("Times", 32));
 window.onClose = {synth.free};
 window.front;
-
 )
+
+
+//5.4.3.1: Who does the compiling?
+
+
+{3+5}.def.dumpByteCodes;
+
+(
+var sum2; //define variable to store the function
+sum2 = {|a, b| a + b};
+sum2.value(2,3);
+)
+
+//5.4.4.1: Defining arguments
+
+//Figure 5.18: Simple function with arguments
+(
+var sq_mean;
+sq_mean = {|a,b| (a+b/2).squared};
+sq_mean.value(3,1);
+)
+
+//Figure 5.19: using ...for undefined number of arguments
+(
+var sq_mean_all;
+sq_mean_all = {|...numbers| (numbers.sum/numbers.size).squared};
+sq_mean_all.(1,3,5,-7);
+)
+
+//5.4.4.2: Default argument values
+//see first-class objects
+
+//5.4.5: Customizing the Behavior of Objects with Functions
+
+
+//Figure 5.20: Using and overriding default values of arguments
+(
+var w_func;
+w_func = {arg message="warning", bounds=Rect(200, 500, 500, 100);
+	var window;
+	window = Window("message window", bounds).front;
+	TextView(window, window.view.bounds.insetBy(10, 10))
+	.string = message;
+};
+w_func.(String.new.addAll(Array.new.addAll("Major News!").pyramid(7)));
+)
+
+//Figure 5.21: Performing messages chosen by index
+(
+var window, button;
+window = Window("Server Button", Rect(400, 400, 200, 200));
+button = Button(window, Rect(5, 5, 190, 190));
+button.states = [["boot!"], ["quit!"]];
+button.action = {|me| Server.default perform: [\quit, \boot][me.value] };
+window.front;
+)
+
+//Figure 5.4.6: Functions as Arguments in Messages for Asynchronous Communication
+
+(
+var window, button;
+window = Window("Server Button", Rect(400, 400, 200, 200));
+button = Button(window, Rect(5, 5, 190, 190));
+button.states = [["boot!"], ["quit!"]];
+button.action = {|me|
+	[{ "QUITTING THE DEFAULT SERVER".postln;
+		Server.default.quit;
+	},{ "BOOTING THE DEFAULT".postln;
+		Server.default.boot;
+	}][me.value].value;
+};
+window.front;
+)
+
+
+//Figure 5.4.6.1: Asynchronous communication with a Server
+
+//Figure 5.23: Asynchronous communication with the server
+(
+var buffer;
+buffer = Buffer.read(path: "sounds/allwlk01.wav",
+	action: {|buffer|
+		format("loaded % at: %", buffer, Main.elapsedTime).postln;
+});
+format("Reached this after 'Buffer.read' at: %", Main.elapsedTime).postln;
+buffer;
+)
+
+//5.4.7: Iterating Functions
+
+//Iteration: technique of repeating the same function a number of times
+
+//5.4.7.1: Iterating a specified number of times
+
+10 do: {|i| [i, i.squared, i.isPrime].postln};
+{10.rand * 3}!5;
+30.for(35, {|i| i.postln});
+2.0.forBy(10, 1.5, {|i| i.postln});
+
+
+//5.4.7.2: Iterating while a condition is true
+
+//Figure 5.24: Illustrates 'loop' and the use of Event to play notes
+
+
+(
+var window, routine;
+window = Window("close me to stop").front;
+window.onClose = { routine.stop };
+routine = {
+	loop  {
+		(degree: -10 + 30.xrand, dur: 0.05, amp: 0.1.rand).play;
+		0.05.rand.wait;
+	}
+}.fork;
+)
+
+(
+var sum = 0;
+while {sum = sum + exprand(0.1, 3); sum < 10} {sum.postln}
+)
+
+//5.4.8: Partial Application: Shortcut Syntax for Small Functions
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
