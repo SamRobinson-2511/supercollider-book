@@ -13,6 +13,8 @@ SynthDef(\sine, {
 }).add;
 )
 
+x = Synth(\sine);
+
 //6.1.2: Events and Key/Value Arrays
 //Key: Symbol
 //Value: any object of the language (i.e. Number, Array, Symbol, Function)

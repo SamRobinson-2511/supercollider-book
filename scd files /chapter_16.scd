@@ -1,3 +1,7 @@
+s.boot;
+
+
+
 //16.2 Perception at the Micro Time Scale
 {Impulse.ar(XLine.kr(12, 48, 6, doneAction: 2)) * 0.1!2}.play; //up
 {Impulse.ar(XLine.kr(48, 12, 6, doneAction: 2)) * 0.1!2}.play; //down

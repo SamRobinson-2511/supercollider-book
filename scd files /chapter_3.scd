@@ -3,8 +3,10 @@
 //3.1.1: Coding for flexibility
 // - environment variables
 
-
+s.boot;
+(
 ~something = {Pulse.ar(80)*EnvGen.ar(Env.perc, doneAction:2)};
+)
 ~something.play;
 
 //3.2: Control Structures

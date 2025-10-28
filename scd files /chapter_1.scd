@@ -252,7 +252,7 @@ p.free;
 {
 	var rate = Line.kr(1,20,5), carrier, modRatio, index = Line.kr(1, 12, 2);//4
 	carrier = LFNoise0.kr([rate, rate - 2.77])*500+700;//1
-	modRatio = MouseX.kr(1,2.0);
+	modRatio = MouseX.kr(0.1,20.0);
 	PMOsc.ar(carrier, carrier*modRatio, index)*0.3 //2
 }.play;
 )
@@ -313,8 +313,9 @@ Synth(\PMCrotale, [\midi, rrand(48, 72).round(1), \tone, rrand(1, 6)])
 // -work anywhere in patch
 // -work in other patches
 // -work in other windows
-s.boot;
-~houston = Buffer.read(s, "/Volumes/Samsung 870 QVO/SAMPLES/musicradar-balearic-bliss-samples/Kit 03 125bpm/Arp loops/BBk3Arp125A-05.wav");
+s.reboot;
+
+~houston = Buffer.read(s, "/Users/robinson.will.sam/Desktop/SAMPLES ROOT/Praat Samples/praat+vocoder.wav");
 ~chooston = Buffer.read(s, "/Volumes/Samsung 870 QVO/SAMPLES/musicradar-balearic-bliss-samples/Kit 03 125bpm/Arp loops/BBk3Arp125A-02.wav");
 
 {PlayBuf.ar(1, ~houston)}.play;
