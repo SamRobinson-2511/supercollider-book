@@ -111,7 +111,7 @@ p = ProxySpace.push;
 p.clear.pop;
 
 
-//Figure 7.10: Initialization ofnode proxies in a proxy space
+//Figure 7.10: Initialization of node proxies in a proxy space
 p.clear; // neutralize space, free all busses and synths
 p.push; //if needed
 ~a.ar(3);
@@ -129,6 +129,7 @@ p.push; //if needed
 	LFTri.ar(LFTri.ar(mod * freq).range(freq*mod, freq)) * a_in * 0.2
 }
 )
+
 (
 ~mod2 = { LFNoise1.kr(1).range(0,1)};
 ~mod1 = { LFPulse.kr(~mod2.kr * 30 + 1, 0, 0.3)};
@@ -143,6 +144,184 @@ p.push; //if needed
 ~out.xmap(\freq, ~freq1, \mod, ~mod2);
 ~out.xmap(\freq, ~freq2, \mod, ~mod1, \a_in, ~audio2);
 ~out.map(\a_in, ~audio1);
+
+//Figure 7.12: Rewriting a synth definition and a task definition while running
+
+//this SynthDef is used in the subsequent figures
+(
+SynthDef(\wave, {
+	|out, freq=440, amp=0.1, sustain=0.1, mod=0.2|
+	OffsetOut.ar(out,
+		EnvGen.ar(Env.perc(ExpRand(0.001, 0.05), sustain, amp), doneAction:2)
+		*
+		SinOsc.ar(freq, SinOsc.ar(sustain.reciprocal * 8, [0, Rand(0, pi)], mod))
+	)
+}).add;
+)
+
+(
+Tdef(\x, {
+	x = 4; y = 13;
+	loop {
+		x = (x * y) % 11;
+		(instrument: \wave, note: x.postln, sustain: 0.5, octave: 6).play;
+		0.125.wait;
+	}
+}).play;
+)
+
+//Figure 7.13: Combining different task proxies: embed and fork
+(
+
+Tdef(\a, {10.do { (instrument: \wave, freq: 50.rand+1500).play;
+0.03.wait}});
+Tdef(\b, { [1, 5, 1, 2, 8, 4, 12].do {
+	|x|
+	(
+		instrument: \wave,
+		note: x + 8
+	).play;
+	0.8.wait;
+}});
+Tdef(\c, { "c is just a waiting message".postln;
+	2.wait;
+});
+
+
+Tdef(\x, {
+	loop {
+		Tdef(\a).embed;
+		1.wait;
+		Tdef(\b).embed;
+		2.wait;
+		Tdef(\a).fork;
+		Tdef(\b).fork;
+		Tdef(\c).embed;
+	}
+}).play;
+)
+
+
+(
+//rewrite with infinite loop
+Tdef(\a,
+	{
+		inf.do {
+			(
+				instrument: \wave,
+				freq: 500.rand+100
+).play;
+			0.1.wait;
+}});
+)
+
+//rewrite with finite loop
+(
+Tdef(\a, {10.do {(instrument: \wave, freq: 50.rand+500).play;
+	0.1.wait;
+}})
+)
+
+//Figure 7.14: passing an evironment into a task proxy when embedding it
+
+(
+Tdef(\a, {
+	|in|
+	in.at(\n).do{
+		|i|
+		in = (instrument: \wave, detune: 5.rand2, freq: 110).putAll(in);
+		in.postln.play;
+		in.delta.wait;
+	}
+})
+)
+
+(
+Tdef(\x, {
+	|inevent|
+	loop {
+		Tdef(\a).embed((note: [15, 17], dur: 0.1, n: 13));
+		1.wait;
+		Tdef(\a).embed((note: 9, dur: 0.4, n:4));
+		1.wait;
+	}
+}).play;
+)
+
+//Figure 7.15: A pattern proxy as an entry point into a pattern
+Pdefn(\x, Pseq([0, 2, 0, 7, 6, 5, 4, 3], inf));
+(
+Task{
+	var stream = Pdefn(\x).asStream;
+	var val;
+	loop {
+		val = stream.next;
+		(instrument: \wave, note: val).play;
+		0.2.wait;
+	}
+}.play;
+)
+Pdefn(\x, Pseq([0, 2, 0, 8, 6, 5, 2, 3, 4, 5], inf));
+Pdefn(\x, Pseq([0, 2, 0, 7, 6, 5, 4, 3].scramble + 4, inf));
+
+
+
+//Figure 7.16: Deriving variations from nonexisting streams by math operations
+
+Pdefn(\y, Pdefn(\x) + 2); //derive a variation
+Pdefn(\z, Pdefn(\x) + Pseq([0, 5, 0, 7, 2], inf)); //combined stream arrays
+Pdefn(\a, Ptuple([Pdefn(\y), Pdefn(\z)]));
+
+(
+Task{
+	var stream = Pdefn(\a).asStream;
+	var val;
+	loop {
+		val = stream.next.postln;
+		(instrument: \wave, note: val, sustain: rrand(0.5, 0.9)).play;
+		0.2.wait;
+	}
+}.play;
+)
+
+Pdefn(\x, Pseq([0, 11], inf));
+Pdefn(\x, Pseq([0, 2, 0, 7, 6, 5, 4, 3].scramble + 5, inf));
+Pdefn(\z, Pdefn(\x) + Pseq([1, 5, 1, 11, 1], inf));
+Pdefn(\a, 5);
+Pdefn.clear;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
