@@ -299,7 +299,7 @@ Pdef(\a, Pbind(\instrument, \wave, \dur, Pseq([1, 3, 2, 3], inf)/6));
 Pdef(\a).pause;
 Pdef(\a).stop;
 
-//Pchain help file
+//Pchain help file: used to combine event patterns
 //Examples
 (
 Pchain(
@@ -361,8 +361,98 @@ c.play; //dur key of a overwritten by b
 )
 )
 
-//post some calues from the composite streams
+//Pbindf
+//Examples
 
+(
+a = Pbind(
+	\x, Pseq([1,2,3]),
+	\zzz, 9000
+);
+b = Pbindf(a,
+	\y, Prand([100, 300, 200], inf),
+	\zzz, 99
+);
+x = b.asStream;
+)
+x.next(());
+x.next(());
+x.next(());
+x.next(());
+
+
+//Sound examples
+(
+a = Pbind(\dur, 0.1);
+Pbindf(a,
+	\freq, Prand([300, 500, 321.2, 399.2], inf)
+).play;
+Pbindf(a, \freq, Prand([1, 1.2, 2, 2.5, 3, 4], inf) * 200).play;
+)
+
+(
+//a synthdef
+SynthDef(\test, {
+	|out, freq=440, amp=0.1, nharms=10, pan=0, gate=1|
+	var audio = Blip.ar(freq, nharms, amp);
+	var env = Linen.kr(gate, doneAction: Done.freeSelf);
+	OffsetOut.ar(out, Pan2.ar(audio, pan, env));
+}).add;
+)
+
+a = Pbind(\instrument, \wave, \dur, 0.5, \sustain, rand(0.1, 0.4, inf));
+Pbindf(a, \freq, Prand([1, 1.2, 2, 2.5, 3, 4], inf) * 200).play;
+
+
+//Pbindef
+//Examples
+
+(
+SynthDef(\Pdefhelp, {
+	|out, freq, sustain=1, amp=1, pan|
+	var env, u = 1;
+	env =  EnvGen.ar(Env.perc(0.01, sustain), 1, doneAction: Done.freeSelf);
+	5.do {
+		var d;
+		d = exprand(0.01, 1);
+		u = SinOsc.ar(d * 300, u, rrand(0.1, 1.2) * d, 1)
+	};
+	Out.ar(out, Pan2.ar(SinOsc.ar(u + 1 * freq, 0, amp*env), pan));
+}).add;
+)
+
+Pbindef(\a, instrument: \Pdefhelp).play;
+Pbindef(\a, degree: Pseq([0, 2, 5b, 1b], inf));
+Pbindef(\a, dur: 0.1);
+Pbindef(\a, degree: Pseq([1b, 5, 3, 1b, 6, 2, 5, 0, 3, 0, 2], inf));
+Pbindef(\a, legato: Prand([1.0, 2.4, 0.2], inf), mtranspose: -3);
+Pbindef(\a, mtranspose: nil); //remove key
+
+Pbindef(\a, degree: Pseq([1, 2, 3, 4, 5, 6], 1));
+Pbindef(\a, degree: Pseq([1, 2, 3, 4, 5, 6], 3), dur: 0.02);
+Pbindef(\a, degree: Pseq([1, 2, 3, 4, 5, 6], 3), dur: 0.1);
+
+//apart from this Pbindef behaves like Pdef:
+
+Pbindef(\a).quant = 0.0;
+Pbindef(\a, degree: Pseq([1,2,3,4,5,6], 1));
+Pbindef(\a).stop;
+Pbindef(\a, degree: Pseq([1,2,3,4,5,6], 1)); //does not resume now
+
+Pbindef(\a).playOnce;
+Pseq([Pbindef(\a), Pdef(\a)]).play;
+
+Pbindef(\a) === Pdef(\a); //identical
+
+//An already existing Pdef can be incrementally changed
+
+Pdef(\x, Pbind(\instrument, \wave, dur: 0.3));
+Pdef(\x).play;
+
+Pbindef(\x, degree: 7.rand+1);
+Pbindef(\x, degree: Pseq([0, 7, 3, 7, 4], inf), dur: Pn(Pseries(0.2, -0.02, 10)));
+Pbindef(\x, \stretch, 2);
+Pdef(\x).stop;
 
 
 
