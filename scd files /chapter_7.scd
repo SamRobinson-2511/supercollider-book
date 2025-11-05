@@ -292,6 +292,118 @@ Pdefn.clear;
 
 
 
+//Figure 7.17: Pdef as a player: play, pause, resume
+Pdef(\a).play; //play silence in a sequence
+Pdef(\a, Pbind(\instrument, \wave)); //insert a sequence of notes
+Pdef(\a, Pbind(\instrument, \wave, \dur, Pseq([1, 3, 2, 3], inf)/6));
+Pdef(\a).pause;
+Pdef(\a).stop;
+
+//Pchain help file
+//Examples
+(
+Pchain(
+	Pbind(
+		\detune, Pseq([-30, 0, 40], inf),
+		\dur, Prand([0.2, 0.4], inf)
+	),
+	Pbind(
+		\degree, Pseq([1,2,3], inf),
+		\dur, 1
+	)
+).trace.play;
+)
+
+//also events can be used directly
+(
+Pchain(
+	Pbind(
+		\degree, Pseq([1,2,3], inf)
+	),
+	(detune: [0,4])
+).trace.play;
+)
+
+//compose some more complicated patterns
+(
+var a, b;
+a = Prand([
+    Pbind(\degree, Pseq([0, 1, 3, 5, 6])),
+    Pbind(\dur, Pshuf([0.4, 0.3, 0.3]), \degree, Pseq([3, -1]))
+], inf);
+b = Prand([
+    Pbind(\ctranspose, Pn(1, 4)),
+    Pbind(\mtranspose, Pn(2, 7))
+], inf);
+c = Prand([
+    Pbind(\detune, Pfuncn({ [0, 10.0].rand }, 5), \legato, 0.2, \dur, 0.2),
+    Pbind(\legato, Pseq([0.2, 0.5, 1.5], 2), \dur, 0.3)
+], inf);
+Pchain(a, b, c).trace.play;
+)
+
+//Pattern composition
+(Pbind(\degree, Pseq([1,2,3], inf)) <> (detune: [0, 4])).trace.play;
+
+(
+a = Pbind(
+	\degree, Pseq([1,2,3], inf),
+	\dur, Prand([0.2, 0.4], inf
+	);
+
+b = Pbind(
+	\detune, Pseq([-30, 0, [0, 40]], inf),
+	\dur, 0.1
+	);
+
+c = b <> a;
+c.play; //dur key of a overwritten by b
+)
+)
+
+//post some calues from the composite streams
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
