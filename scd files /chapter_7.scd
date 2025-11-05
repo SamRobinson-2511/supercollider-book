@@ -455,11 +455,153 @@ Pbindef(\x, \stretch, 2);
 Pdef(\x).stop;
 
 
+s.boot;
+//Figure 7.18:
+(
+(
+Pdef(\x,
+	Pbind(
+		\instrument, \wave,
+		\mod, Pseq([1, 0, 1, 0], inf),
+		\dur, Pn(1/2, 8),
+		\note, 7
+	)
+)
+);
+
+Pdef(\y,
+	Pbindf(
+		Pdef(\x),
+		\amp, 0.2,
+		\note, Pshuf([0, 2, 3, 5], 2) + Prand([0, 5, [0, 4]], inf),
+		\dur, Pseq([1,3,2,3], inf) /6
+	)
+);
+
+(
+Pdef(\z, Pbindf(Pdef(\y), \dur, 1/4))
+);
+
+//the combination of all placeholders into a new placeholder
+(
+Pdef(\a,
+	Pmul(\dur, Pwhite(-0.02, 0.02) + 1,
+		Pseq([
+			Ppar([Pdef(\x), Pdef(\y)]),
+			Pdef(\x),
+			Pdef(\y),
+			Pdef(\z),
+			Ppar([Pdef(\x), Pbindf(Pdef(\y), \ctranspose, 2)])
+		], inf)
+	)
+)
+);
+)
+
+//play it
+Pdef(\a).play;
+
+(
+Pdef(\x,
+	Pbind(
+		\instrument, \wave,
+		\dur, Pseq([1, 2, 3, Prand([3, 2])], inf) / 6,
+		\octave, [6,4]
+	)
+)
+)
+//release break
+(
+Pdef(\x,
+	Pbind(
+		\instrument, \wave,
+		\dur, Pseq([1,3,2, Prand([3,2])], 1) /6,
+		\octave, [6, 4]
+	)
+)
+)
+
+Pdef(\a).stop;
 
 
+//Figure 7.19: Simplifying the code in figure 7.18 with Psym
+//the combination of all placeholders into a new placeholder
+(
+Pdef(\b, Pbindf(Pdef(\y), \ctranspose, 2));
+Pdef(\a,
+	Pmul(\dur, Pwhite(-0.02, 0.02) + 1,
+		Psym(Pseq([[\x, \y], \x, \y, \z, [\x, \b]], inf).trace)
+	)
+).play;
+)
+
+//Figure 7.20: Using a Pdefn for the sequence of symbols itself
+(
+Pdefn(\sequence, Pseq([[\x, \y], \x, \y, \z, [\x, \b]], inf));
+Pdef(\a,
+	Pmul(\dur, Pwhite(-0.02, 0.02)+1,
+		Psym(Pdefn(\sequence).trace)
+	)
+).play;
+)
+
+//rewrite the sequence
+Pdefn(\sequence, Pseq([\x], inf));
+Pdefn(\sequence, Pseq([\x, \y, \x, [\x, \y]], inf));
+
+Pdef(\a).stop;
+
+//Figure 7.21: Event type: "phrase"
+(instrument: \x, type: \phrase).play;
+//a pattern of overlapping phrases
+(
+Pbind(
+	\type, \phrase,
+	\instrument, \x,
+	\legato, 2.5,
+	\note, Pseq([0, 5, 7], inf)
+).play;
+)
 
 
+//Figure 7.22: Recursive Phrasing
 
+(
+Pdef(\x, {
+	|note=0, n=6, step=3, modulo=15, sustain=1|
+	Pbind(
+		\instrument, \wave,
+		\note, note.value + (Pseries(1, step, n) % modulo) + 7,
+		\dur, sustain.value / n
+	)
+})
+)
+
+(
+Pdef(\a,
+	Pbind(
+		\type, \phrase,
+		\instrument, \x,
+		\note, Pseq([3, [4, 3, 5], [13, 15]], inf),
+		\dur, Pseq([1,2,0.5,1.5], inf)
+	)
+).play;
+)
+
+(
+Pdef(\a,
+	Pbind(
+		\type, \phrase,
+		\instrument, \x,
+		\note, Pseq([0, 5, 4, 8, 0], inf),
+		\n, 5,
+		\modulo, Prand([3, [4, 3, 5], [13, 15]], inf),
+		\recursionLevel, 1,
+		\dur, Pseq([1,2,0.5, 1.5], inf) * 2
+
+	)
+).play;
+)
 
 
 
