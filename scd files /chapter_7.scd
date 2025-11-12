@@ -532,17 +532,17 @@ Pdef(\a,
 	Pmul(\dur, Pwhite(-0.02, 0.02) + 1,
 		Psym(Pseq([[\x, \y], \x, \y, \z, [\x, \b]], inf).trace)
 	)
-).play;
+).play.fadeTime(4);
 )
 
 //Figure 7.20: Using a Pdefn for the sequence of symbols itself
 (
 Pdefn(\sequence, Pseq([[\x, \y], \x, \y, \z, [\x, \b]], inf));
 Pdef(\a,
-	Pmul(\dur, Pwhite(-0.02, 0.02)+1,
+	Pmul(\dur, Pwhixte(-0.02, 0.02)+1,
 		Psym(Pdefn(\sequence).trace)
 	)
-).play;
+).play.fadeTime(4);
 )
 
 //rewrite the sequence
@@ -597,11 +597,153 @@ Pdef(\a,
 		\n, 5,
 		\modulo, Prand([3, [4, 3, 5], [13, 15]], inf),
 		\recursionLevel, 1,
-		\dur, Pseq([1,2,0.5, 1.5], inf) * 2
+		\dur, Pseq([1,2,0.5, 1.5], inf) * 2,
 
 	)
 ).play;
 )
+
+
+//Figure 7.25: Combinations between patterns and ugen graphs using a ProxySpace
+
+(
+SynthDef(\train, {
+	|out, xfreq=15, sustain=1.0, amp=0.1, pan|
+	Line.ar(1, 1, sustain, doneAction: Done.freeSelf);
+	OffsetOut.ar(out, Pan2.ar(Impulse.ar(xfreq), pan, amp));
+}).add;
+)
+
+p = ProxySpace.push;
+~z.play;
+
+(
+~x = Pbind(
+	\instrument, \train,
+	\xfreq, Pseq([50, Pwhite(30, 800, 1), 5, 14, 19], inf),
+	\sustain, Pseq([Pwhite(0.01, 0.1, 1), 0.1, 1, 0.5, 0.5], inf),
+	\pan, Prand([-1, 1], inf) * 0.1
+)
+)
+~y = { Ringz.ar(~x.ar, 5000 * [1, 1.2], 0.01)};
+~mod = { LFNoise1.kr(0.1).exprange(200, 5000)};
+~z = { ~y.ar * (SinOsc.ar(~mod.kr) + 1)};
+
+(
+~x = Pbind(
+	\instrument, \train,
+	\xfreq, Pseq([50, ~mod, 5, ~mod, 19], inf),
+	\sustain, Pseq([Pwhite(0.01, 0.1, 1), 0.1, 1, 0.5, 0.5], inf),
+	\pan, Prand([-1, 1], inf) * 0.1
+)
+)
+
+
+//Figure 7.26: Combninations between patterns and ugen graphs
+Ndef(\z).play;
+
+//a pattern in an audio rate node proxy
+(
+Ndef(\x,
+	Pbind(
+		\instrument, \train,
+		\xfreq, Pseq([50, Pwhite(30, 800, 1), 5, 14, 19], inf),
+		\sustain, Pseq([Pwhite(0.01, 0.1, 1), 0.1, 1, 0.5, 0.5], inf),
+		\pan, Prand([-1, 1], inf) * 0.1
+	)
+)
+)
+
+
+//History
+History.clear.end;
+History.start;
+1 + 2;
+p = ProxySpace.push(s.boot);
+~a = { Dust.ar([1, 1] * 30) * 0.3};
+~a.play;
+~a.end(3);
+
+History.started;
+History.end;
+History.document;
+History.logFolder;
+History.showLogFile;
+
+
+
+
+//Figure 7.27: Using a Tdef to create textures of overlapping synths within a node proxy
+Ndef(\x).play;
+Ndef(\x, { |freq=5, detune=0| Impulse.ar(freq * [detune, 1-detune])*0.2});
+
+(
+Tdef(\c, {
+	loop {
+		Ndef(\x).fadeTime = rrand(0.1, 3.5);
+		Ndef(\x).send([\freq, exprand(2, 400), \detune, [0.0, 1.0].choose.rand]);
+		2.wait;
+	}
+}).play;
+)
+
+
+g = History.makeWin;
+History.play(0);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

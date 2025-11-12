@@ -581,6 +581,164 @@ p.stop;
 
 
 
+//Figure 5.29: A function that creates functions that count
+(
+var counter_maker;
+var window, button1, button2;
+
+counter_maker = {
+	|max_count|
+	var current_count = 0;
+	{
+		if(current_count == max_count){
+			format("finished counting to %", max_count).postln;
+			max_count;
+
+		}{
+			current_count = current_count + 1;
+			format("counting % of %", current_count, max_count).postln;
+			current_count;
+		}
+	}
+};
+
+window = Window("Counters", Rect(400, 400, 200, 80));
+button1 = Button(window, Rect(10, 10, 180, 20));
+button1.states = [["counting to 10"]];
+button1.action = counter_maker.(10);
+button2 = Button(window, Rect(10, 40, 180, 20));
+button2.states = [["counting to 5"]];
+button2.action = counter_maker.(5);
+window.front;
+)
+
+
+//Figure 5.31: Functions stored in events as instance methods
+(
+var counter_maker;
+var make_counters_gui;
+counter_maker = {
+	|max_count|
+	var current_count;
+	(
+		count1:
+		{
+			if(current_count == max_count){
+				format("finished counting to %", max_count).postln;
+			}{
+				current_count = current_count + 1;
+				format("counting % of %", current_count, max_count).postln;
+			}
+		},
+		reset_count: {
+			format("resetting % counter", max_count).postln;
+			current_count = 0;
+		},
+		max_count: {max_count}
+	)
+};
+
+make_counters_gui = {
+	|...counts|
+	var window, counter;
+	window = Window("Counters",
+		Rect(400, 400, 200, 50 * counts.size + 10));
+	window.view.decorator = FlowLayout(window.view.bounds, 5@5, 5@5);
+	counts collect: counter_maker.(_) do: {
+		|counter|
+		Button(window, Rect(0, 0, 190, 20))
+		.states_([["Counting to: " ++ counter.max_count.asString]])
+		.action = { counter.count1 };
+		Button(window, Rect(0, 0, 190, 20))
+		.states_([["Reset"]])
+		.action = { counter.reset_count};
+	};
+	window.front;
+};
+make_counters_gui.(5, 10, 27);
+)
+
+//Figure 5.32: Building an Array with add
+
+Server.default.boot;
+(
+var degrees, window, button;
+window = Window("melodies?", Rect(400, 400, 200, 200));
+button = Button(window, window.view.bounds.insetBy(10, 10));
+button.states = [["click me to add a note"]];
+button.action = {
+	degrees = degrees add: 0.rrand(15);
+	Pbind(\degree, Pseq(degrees), \dur, Prand([0.1, 0.2, 0.4], inf)).play;
+};
+window.front;
+)
+
+//Figure 5.34: Classes of Classes
+1.class;
+1.class.class;
+1.class.class.class;
+1.class.class.class.class;
+1.class.class.class.class.class;
+Class.class;
+Meta_Class.class;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

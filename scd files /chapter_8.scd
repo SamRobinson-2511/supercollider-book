@@ -9,7 +9,6 @@ q[\melA] = [0,2,3];
 
 
 //put and at operations can be written like getter-setter messages
-
 q.melA_([0,2,3]);
 //or as
 q.melA = [0,2,3];
@@ -25,11 +24,7 @@ q.playMel;
 
 
 //8.4: Classes and Events as Object Models
-
-
-
 //8.7: A Miniature Cloud Generator
-
 
 //Figure 8.23: Two Granular SynthDefs and tests for them
 (
@@ -41,9 +36,7 @@ SynthDef(\gab1st, {
 		amp * AmpComp.ir(freq) * 0.5), doneAction: 2);
 	OffsetOut.ar(out, Pan2.ar(snd * env, pan));
 }, \ir ! 5).add;
-)
 
-(
 SynthDef(\percSin, {
 	|out, amp=0.1, freq=440, sustain=0.01, pan|
 	var snd = FSinOsc.ar(freq);
@@ -58,6 +51,7 @@ SynthDef(\percSin, {
 Synth(\gab1st);
 Synth(\percSin);
 Synth(\percSin, [\amp, 0.2, \sustain, 0.1]);
+(
 Synth(\gab1st, [
 	\out, 0,
 	\amp, 0.2,
@@ -67,6 +61,7 @@ Synth(\gab1st, [
 
 ]
 );
+)
 
 (
 q = q ? ();
